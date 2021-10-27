@@ -20,7 +20,7 @@
 **COMMENTS**: комментарии к отзывам. Комментарий привязан к определённому отзыву.
 
 # Алгоритм регистрации пользователей
-Пользователь отправляет POST-запрос с параметром email на `/api/v1/auth/email/`.
+Пользователь отправляет POST-запрос с параметром email и username на `/api/v1/auth/signup/`.
 YaMDB отправляет письмо с кодом подтверждения (confirmation_code) на адрес email (функция в разработке).
 Пользователь отправляет POST-запрос с параметрами email и confirmation_code на `/api/v1/auth/token/`, в ответе на запрос ему приходит token (JWT-токен).
 Эти операции выполняются один раз, при регистрации пользователя. В результате пользователь получает токен и может работать с API, отправляя этот токен с каждым запросом.
@@ -36,17 +36,32 @@ YaMDB отправляет письмо с кодом подтверждения
 
 **Администратор Django** — те же права, что и у роли Администратор.
 
-# Установка
-Склонируйте репозиторий. Находясь в папке с кодом создайте виртуальное окружение `python -m venv venv`, активируйте его (Windows: `source venv\scripts\activate`; Linux/Mac: `sorce venv/bin/activate`), установите зависимости `python -m pip install -r requirements.txt`.
+# Запуск стека приложений с помощью docker-compose
+Склонируйте репозиторий. Находясь в корневой директории репозитория, выполните команду `docker-compose up -d` для запуска сервера разработки.
 
-Для запуска сервера разработки,  находясь в директории проекта выполните команды:
+Выполните миграции: `docker-compose exec web python manage.py migrate --noinput`.
+
+Для заполнения базы начальными данными, выполните команды:
 ```
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+docker-compose exec web python manage.py shell
+
+# выполнить в открывшемся терминале:
+>>> from django.contrib.contenttypes.models import ContentType
+>>> ContentType.objects.all().delete()
+>>> quit()
+
+docker-compose exec web python manage.py loaddata fixtures.json
 ```
 
-Проект запущен и доступен по адресу [localhost:8000](http://localhost:8000/).
+Создайте суперпользователя: 
+
+`docker-compose exec web python manage.py createsuperuser` 
+
+Выполните _collectstatic_: 
+
+`docker-compose exec web python manage.py collectstatic --no-input`.
+
+Проект запущен и доступен по адресу [localhost](http://localhost/).
 
 # Проект в разработке
-Нужно доработать отправку кода при регистрации на e-amil и подключить проект к Postgres.
+Нужно доработать отправку кода при регистрации на e-mail.
